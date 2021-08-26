@@ -41,8 +41,8 @@ CREATE TABLE IF NOT EXISTS content.genre (
 -- Создаем таблицу genre_film_work
 CREATE TABLE IF NOT EXISTS content.genre_film_work (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    film_work_id uuid REFERENCES content.film_work (id),
-    genre_id uuid REFERENCES content.genre (id),
+    film_work_id uuid REFERENCES content.film_work (id) NOT NULL,
+    genre_id uuid REFERENCES content.genre (id) NOT NULL,
     created_at TIMESTAMP with time zone
 );
 
@@ -67,4 +67,3 @@ CREATE TABLE IF NOT EXISTS content.person_film_work (
 -- Создаем индексы
 CREATE UNIQUE INDEX film_work_person_role ON content.person_film_work (film_work_id, person_id, role);
 CREATE UNIQUE INDEX film_work_genre ON content.genre_film_work (film_work_id, genre_id);
-
