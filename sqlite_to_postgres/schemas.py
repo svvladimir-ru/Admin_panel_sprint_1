@@ -1,4 +1,5 @@
 import uuid
+
 from datetime import datetime
 from dataclasses import dataclass, field
 
@@ -50,15 +51,3 @@ class PersonFilmWorkWithoutField:
     role: list
     created_at: datetime
     id: uuid.UUID = field(default_factory=uuid.uuid4)
-
-
-@dataclass(frozen=True)
-class MovieWithoutField:
-    __slots__ = ('title', 'description')
-    title: str
-    description: str
-
-
-movie = MovieWithoutField(title='AAA', description='BBB')
-
-print(i for i in movie.__annotations__)
