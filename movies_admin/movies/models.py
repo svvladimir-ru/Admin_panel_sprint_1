@@ -2,7 +2,7 @@ from django.db import models
 
 
 class FilmWork(models.Model):
-    """Признаюсь посмотрил через python manage.py inspectdb > models.py
+    """Признаюсь построил через python manage.py inspectdb > models.py
     Добавил поля в genres, persons для выполнения задачи
     """
     id = models.UUIDField(primary_key=True)
