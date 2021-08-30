@@ -1,23 +1,18 @@
 import os
 
 from pathlib import Path
+from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
+load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_KEY = os.getenv('SECRET_KEY')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-k_e0gw#vs2j+&*ey8ptu@*sxrc!rm*4njr2pc4-s=rg8ix+$0p'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 ALLOWED_HOSTS = []
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -59,26 +54,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'movies',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('DB_PORT', 5432),
+        'ENGINE': os.getenv('ENGINE'),
+        'NAME': os.getenv('NAME'),
+        'USER': os.getenv('USER'),
+        'PASSWORD': os.getenv('PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
         'OPTIONS': {
-           'options': '-c search_path=content'
+           'options': f'-c search_path={os.environ.get("OPTIONS")}'
         }
     }
 }
-
-# Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -95,10 +83,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -110,12 +94,7 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
-
 STATIC_URL = '/static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

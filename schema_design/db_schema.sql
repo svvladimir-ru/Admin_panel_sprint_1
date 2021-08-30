@@ -11,6 +11,7 @@ CREATE SCHEMA IF NOT EXISTS content;
 
 -- Добавляем нумерованные типы для ролей
 CREATE TYPE content.film_team_role AS ENUM ('director', 'writer', 'actor');
+-- Ок, понял, но пока оставлю что-бы не ломать.
 
 -- Устанавливаем расширение для генерации UUID
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -23,8 +24,8 @@ CREATE TABLE IF NOT EXISTS content.film_work (
     creation_date DATE,
     certificate TEXT,
     file_path TEXT,
-    rating NUMERIC(2,1),
-    type TEXT not null,
+    rating REAL(1),
+    type VARCHAR(30) NOT NULL,
     created_at TIMESTAMP with time zone,
     updated_at TIMESTAMP with time zone
 );
@@ -32,7 +33,7 @@ CREATE TABLE IF NOT EXISTS content.film_work (
 -- Создаем таблицу genre
 CREATE TABLE IF NOT EXISTS content.genre (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name varchar(30) NOT NULL UNIQUE,
+    name VARCHAR(30) NOT NULL UNIQUE,
     description TEXT,
     created_at TIMESTAMP with time zone,
     updated_at TIMESTAMP with time zone

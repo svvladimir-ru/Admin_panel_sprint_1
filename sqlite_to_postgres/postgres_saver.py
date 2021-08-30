@@ -2,19 +2,24 @@ from psycopg2.extensions import connection as _connection
 
 
 class PostgresSaver:
-    """Ужасный метод, но попробую описать.
+    """Класс для сохранения данных в бд
     Принимает словарь из sqllite_loader.py со значениями из dataclasses
-    проходит циклом, каждые 100 записей добавляет в postgres. Пршилось сделать дублирование кода,
-    что бы добавлять последние записи.
+    проходит циклом, каждые 100 записей добавляет в postgres.
     В postgres добавляются данные из методов, соответствующих названиям таблиц
     """
     def __init__(self, pg_conn: _connection):
         self.conn = pg_conn
         self.cursor = self.conn.cursor()
         self.counter = 0
-        self.tables = ''
+        self.methods = {
+            'film_work': self.film_work,
+            'genre': self.genre,
+            'genre_film_work': self.genre_film_work,
+            'person': self.person,
+            'person_film_work': self.person_film_work,
+        }
 
-    def save_film_work(self, data) -> list:
+    def film_work(self, data) -> list:
         args = ','.join(self.cursor.mogrify(
             "('{}', '{}', {}, {}, {}, '{}', '{}', '{}', {}, '{}')".format(
                 item.title.replace("'", '"'),
@@ -30,7 +35,7 @@ class PostgresSaver:
             )).decode() for item in data)
         return args
 
-    def save_genre(self, data) -> list:
+    def genre(self, data) -> list:
         args = ','.join(self.cursor.mogrify(
             "('{}', {}, '{}', '{}', '{}')".format(
                 item.name,
@@ -41,7 +46,7 @@ class PostgresSaver:
             )).decode() for item in data)
         return args
 
-    def save_genre_film_work(self, data) -> list:
+    def genre_film_work(self, data) -> list:
         args = ','.join(self.cursor.mogrify(
             "('{}', '{}', '{}', '{}')".format(
                 item.film_work_id,
@@ -51,7 +56,7 @@ class PostgresSaver:
             )).decode() for item in data)
         return args
 
-    def save_person(self, data) -> list:
+    def person(self, data) -> list:
         args = ','.join(self.cursor.mogrify(
             "('{}', {}, '{}', '{}', '{}')".format(
                 item.full_name.replace("'", '"'),
@@ -62,7 +67,7 @@ class PostgresSaver:
             )).decode() for item in data)
         return args
 
-    def save_person_film_work(self, data) -> list:
+    def person_film_work(self, data) -> list:
         args = ','.join(self.cursor.mogrify(
             "('{}', '{}', '{}', '{}', '{}')".format(
                 item.film_work_id,
@@ -75,37 +80,19 @@ class PostgresSaver:
 
     def save_all_data(self, data: dict) -> bool:
         for table in data:
-            save_data = []
-            method = getattr(self, f'save_{table}')  # получаем имя метода
+            save_data = []  # оставил для надежности.
+            method = self.methods[f'{table}']  # завел как переменную, что бы ниже не было f'{f'{}'}' и убрал getattr
             for line in data[table]:
-                if self.counter < 99:
-                    save_data.append(line)
-                    self.counter += 1
-                    continue
-                else:
-                    save_data.append(line)
-                    self.counter = 0
-                    try:
-                        self.cursor.execute(f"""
-                            INSERT INTO content.{table} ({", ".join(i for i in data[table][0].__annotations__)})
-                            VALUES {method(save_data)}
-                            ON CONFLICT (id) DO NOTHING
-                            """)
-                        save_data.clear()
-                        self.conn.commit()
-                    except Exception as err:
-                        print(err)
-                        break
-                    continue
-            try:
-                self.cursor.execute(f"""
-                    INSERT INTO content.{table} ({", ".join(i for i in data[table][0].__annotations__)})
-                    VALUES {method(save_data)}
-                    ON CONFLICT (id) DO NOTHING
-                    """)
-                save_data.clear()
-                self.conn.commit()
-            except Exception as err:
-                print(err)
-                break
+                save_data.append(line)
+            while len(save_data):  # решил использовать за место batch метода, мне кажется так будет лучше.
+                try:
+                    self.cursor.execute(f"""
+                        INSERT INTO content.{table} ({', '.join(i for i in data[table][0].__annotations__)})
+                        VALUES {method(save_data[:100])}
+                        ON CONFLICT (id) DO NOTHING
+                        """)
+                    self.conn.commit()
+                    del save_data[:100]
+                except Exception:  # для учебный целей не стал подключать логирование, просто сделал выход.
+                    return False
         return True

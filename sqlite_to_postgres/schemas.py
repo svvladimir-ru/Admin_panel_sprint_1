@@ -37,7 +37,7 @@ class GenreFilmWorkWithoutField:
 
 @dataclass(frozen=True)
 class PersonWithoutField:
-    full_name: str is not None
+    full_name: str
     birth_date: datetime
     created_at: datetime
     updated_at: datetime
@@ -48,6 +48,6 @@ class PersonWithoutField:
 class PersonFilmWorkWithoutField:
     film_work_id: uuid.UUID
     person_id: uuid.UUID
-    role: list
+    role: str
     created_at: datetime
     id: uuid.UUID = field(default_factory=uuid.uuid4)

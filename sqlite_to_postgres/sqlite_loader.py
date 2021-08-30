@@ -1,6 +1,10 @@
 import sqlite3
 
-from schemas import *
+from schemas import (FilmWorkWithoutField,
+                     GenreWithoutField,
+                     GenreFilmWorkWithoutField,
+                     PersonWithoutField,
+                     PersonFilmWorkWithoutField)
 
 
 class SQLiteLoader:
@@ -78,9 +82,9 @@ class SQLiteLoader:
 
     def load_movies(self) -> dict:
         return {
-            "film_work": self.load_film_work(),
-            "genre": self.load_genre(),
-            "genre_film_work": self.load_genre_film_fork(),
-            "person": self.load_person(),
-            "person_film_work": self.load_person_film_work()
+            'film_work': self.load_film_work(),
+            'genre': self.load_genre(),
+            'genre_film_work': self.load_genre_film_fork(),
+            'person': self.load_person(),
+            'person_film_work': self.load_person_film_work()
         }

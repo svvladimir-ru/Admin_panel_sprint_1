@@ -1,21 +1,33 @@
 from django.db import models
+from django.utils.translation import gettext as _
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
-class FilmWork(models.Model):
+class TimeStampedMixin:
+    created_at = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+    updated_at = models.DateTimeField(blank=True, null=True, auto_now=True)
+
+
+class PersonRole(models.TextChoices):
+    DIRECTOR = 'director', _('директор')
+    WRITER = 'writer', _('сценарист')
+    ACTOR = 'actor', _('актер')
+
+
+class FilmWork(TimeStampedMixin, models.Model):
     """Признаюсь построил через python manage.py inspectdb > models.py
-    Добавил поля в genres, persons для выполнения задачи, Добавил к полям created_created_at,
-    updated_at поля auto_now_add и auto_now
+    Добавил поля в genres, persons для выполнения задачи, вынес created_at и updated_at в TimeStampedMixin
     """
     id = models.UUIDField(primary_key=True)
     title = models.TextField()
     description = models.TextField(blank=True, null=True)
     creation_date = models.DateField(blank=True, null=True)
     certificate = models.TextField(blank=True, null=True)
-    file_path = models.TextField(blank=True, null=True)
-    rating = models.DecimalField(max_digits=2, decimal_places=1, blank=True, null=True)
+    file_path = models.FileField(upload_to='film_works/', blank=True, null=True)
+    rating = models.FloatField(
+        validators=[MinValueValidator(0), MaxValueValidator(10)],
+        blank=True, null=True)
     type = models.TextField()
-    created_at = models.DateTimeField(blank=True, null=True, auto_now_add=True)
-    updated_at = models.DateTimeField(blank=True, null=True, auto_now=True)
     genres = models.ManyToManyField('Genre', through='GenreFilmWork')
     persons = models.ManyToManyField('Person', through='PersonFilmWork')
 
@@ -24,12 +36,10 @@ class FilmWork(models.Model):
         db_table = 'film_work'
 
 
-class Genre(models.Model):
+class Genre(TimeStampedMixin, models.Model):
     id = models.UUIDField(primary_key=True)
     name = models.CharField(unique=True, max_length=30)
     description = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(blank=True, null=True, auto_now_add=True)
-    updated_at = models.DateTimeField(blank=True, null=True, auto_now=True)
 
     class Meta:
         managed = False
@@ -48,12 +58,10 @@ class GenreFilmWork(models.Model):
         unique_together = (('film_work', 'genre'),)
 
 
-class Person(models.Model):
+class Person(TimeStampedMixin, models.Model):
     id = models.UUIDField(primary_key=True)
     full_name = models.TextField()
     birth_date = models.DateField(blank=True, null=True)
-    created_at = models.DateTimeField(blank=True, null=True, auto_now_add=True)
-    updated_at = models.DateTimeField(blank=True, null=True, auto_now=True)
 
     class Meta:
         managed = False
@@ -64,7 +72,7 @@ class PersonFilmWork(models.Model):
     id = models.UUIDField(primary_key=True)
     film_work = models.ForeignKey(FilmWork, models.DO_NOTHING)
     person = models.ForeignKey(Person, models.DO_NOTHING)
-    role = models.TextField()  # This field type is a guess.
+    role = models.CharField(max_length=20, choices=PersonRole.choices)
     created_at = models.DateTimeField(blank=True, null=True, auto_now_add=True)
 
     class Meta:
