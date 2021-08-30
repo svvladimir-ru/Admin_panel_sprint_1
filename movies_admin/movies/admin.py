@@ -1,22 +1,55 @@
 from django.contrib import admin
-from .models import FilmWork, Genre, GenreFilmWork, Person, PersonFilmWork
+from .models import FilmWork, Person, Genre
+
+
+class PersonInLineAdmin(admin.TabularInline):
+    model = FilmWork.persons.through
+    extra = 0
+
+
+class GenreInLineAdmin(admin.TabularInline):
+    model = FilmWork.genres.through
+    extra = 0
 
 
 @admin.register(FilmWork)
 class FilmWorkAdmin(admin.ModelAdmin):
-
-    list_display = ('title', 'type', 'creation_date', 'rating', 'created_at', 'updated_at')
-
-    # фильтрация в списке
-    list_filter = ('type',)
-
-    # поиск по полям
-    search_fields = ('title', 'description', 'id')
-
-    # порядок следования полей в форме создания/редактирования
-    fields = (
-        'title', 'type', 'description', 'creation_date', 'certificate',
-        'file_path', 'rating',
+    list_display = ('title', 'type', 'creation_date', 'rating',)
+    fieldsets = (
+        (
+            None, {
+                'fields': (
+                    'title',
+                    'type',
+                    'description',
+                )
+            }
+        ),
+        ('Advanced options', {
+            'fields': (
+                'creation_date',
+                'rating',
+                'certificate',
+                'file_path',
+            )
+        }
+         ),
     )
+    inlines = (PersonInLineAdmin, GenreInLineAdmin)
+    search_fields = ('title', 'description', 'type', 'genres',)
 
 
+@admin.register(Person)
+class PersonAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'birth_date',)
+    fields = ('full_name', 'birth_date',)
+    inlines = (PersonInLineAdmin,)
+    search_fields = ('full_name', 'birth_date',)
+
+
+@admin.register(Genre)
+class GenreAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description',)
+    fields = ('name', 'description',)
+    inlines = (GenreInLineAdmin,)
+    search_fields = ('name', 'description',)

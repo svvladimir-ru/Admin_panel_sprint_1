@@ -1,78 +1,72 @@
-import uuid
-
 from django.db import models
-from django.utils.translation import gettext as _
 
 
-class TimeStampedMixin:
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
-class PersonRole(models.TextChoices):
-    DIRECTOR = 'director', _('директор')
-    WRITER = 'writer', _('сценарист')
-    ACTOR = 'actor', _('актер')
-
-
-class FilmWork(TimeStampedMixin, models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+class FilmWork(models.Model):
+    """Признаюсь посмотрил через python manage.py inspectdb > models.py
+    Добавил поля в genres, persons для выполнения задачи
+    """
+    id = models.UUIDField(primary_key=True)
     title = models.TextField()
-    description = models.TextField(null=True)
-    creation_date = models.DateField(null=True)
-    file_path = models.FilePathField(null=True)  # либо FileField
-    rating = models.DecimalField(max_digits=2, decimal_places=1, null=True)
-    type = models.CharField(max_length=30)
+    description = models.TextField(blank=True, null=True)
+    creation_date = models.DateField(blank=True, null=True)
+    certificate = models.TextField(blank=True, null=True)
+    file_path = models.TextField(blank=True, null=True)
+    rating = models.DecimalField(max_digits=2, decimal_places=1, blank=True, null=True)
+    type = models.TextField()
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+    genres = models.ManyToManyField('Genre', through='GenreFilmWork')
+    persons = models.ManyToManyField('Person', through='PersonFilmWork')
 
     class Meta:
-        verbose_name = _('filmwork')
-        verbose_name_plural = _('filmworks')
-        db_table = "film_work"
         managed = False
+        db_table = 'film_work'
 
 
-class Genre(TimeStampedMixin, models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    name = models.CharField(max_length=30)
-    description = models.TextField(null=True)
-    creation_date = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class Genre(models.Model):
+    id = models.UUIDField(primary_key=True)
+    name = models.CharField(unique=True, max_length=30)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        verbose_name = _('genre')
-        verbose_name_plural = _('genres')
-        db_table = "genre"
         managed = False
+        db_table = 'genre'
 
 
 class GenreFilmWork(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    film_work_id = models.ForeignKey('FilmWork', on_delete=models.CASCADE)
-    genre_id = models.ForeignKey('Genre', on_delete=models.CASCADE)
-    creation_date = models.DateTimeField(auto_now_add=True)
+    id = models.UUIDField(primary_key=True)
+    film_work = models.ForeignKey(FilmWork, models.DO_NOTHING)
+    genre = models.ForeignKey(Genre, models.DO_NOTHING)
+    created_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        db_table = "film_work_genre"
         managed = False
+        db_table = 'genre_film_work'
+        unique_together = (('film_work', 'genre'),)
 
 
-class Person(TimeStampedMixin, models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    full_name = models.CharField(max_length=30)
-    birth_date = models.TextField(null=True)
+class Person(models.Model):
+    id = models.UUIDField(primary_key=True)
+    full_name = models.TextField()
+    birth_date = models.DateField(blank=True, null=True)
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        db_table = "person"
         managed = False
+        db_table = 'person'
 
 
 class PersonFilmWork(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    film_work_id = models.ForeignKey('FilmWork', on_delete=models.CASCADE)
-    person_id = models.ForeignKey('Person', on_delete=models.CASCADE)
-    role = models.CharField(_('роль'), max_length=20, choices=PersonRole.choices)
-    creation_date = models.DateTimeField(auto_now_add=True)
+    id = models.UUIDField(primary_key=True)
+    film_work = models.ForeignKey(FilmWork, models.DO_NOTHING)
+    person = models.ForeignKey(Person, models.DO_NOTHING)
+    role = models.TextField()  # This field type is a guess.
+    created_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        db_table = "person_film_work"
         managed = False
+        db_table = 'person_film_work'
+        unique_together = (('film_work', 'person', 'role'),)
