@@ -4,8 +4,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class TimeStampedMixin(models.Model):
-    created_at = models.DateTimeField(blank=True, null=True, auto_now_add=True)
-    updated_at = models.DateTimeField(blank=True, null=True, auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
@@ -26,7 +26,7 @@ class FilmWork(TimeStampedMixin):
     id = models.UUIDField(primary_key=True)
     title = models.TextField()
     description = models.TextField(blank=True, null=True)
-    creation_date = models.DateField(blank=True, null=True)
+    creation_date = models.DateField(null=True)
     certificate = models.TextField(blank=True, null=True)
     file_path = models.FileField(upload_to='film_works/', blank=True, null=True)
     rating = models.FloatField(
@@ -56,7 +56,7 @@ class GenreFilmWork(models.Model):
     id = models.UUIDField(primary_key=True)
     film_work = models.ForeignKey(FilmWork, models.DO_NOTHING)
     genre = models.ForeignKey(Genre, models.DO_NOTHING)
-    created_at = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -79,7 +79,7 @@ class PersonFilmWork(models.Model):
     film_work = models.ForeignKey(FilmWork, models.DO_NOTHING)
     person = models.ForeignKey(Person, models.DO_NOTHING)
     role = models.CharField(max_length=20, choices=PersonRole.choices)
-    created_at = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
