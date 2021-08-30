@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS content.genre_film_work (
 -- Создаем таблицу person
 CREATE TABLE IF NOT EXISTS content.person (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    full_name TEXT NOT NULL,
+    full_name VARCHAR(40) NOT NULL,
     birth_date DATE,
     created_at TIMESTAMP with time zone,
     updated_at TIMESTAMP with time zone

@@ -27,7 +27,7 @@ class FilmWork(TimeStampedMixin, models.Model):
     rating = models.FloatField(
         validators=[MinValueValidator(0), MaxValueValidator(10)],
         blank=True, null=True)
-    type = models.TextField()
+    type = models.CharField(max_length=30, default="movie")  # поменял text, по дефолту movie. Так как других типов нет
     genres = models.ManyToManyField('Genre', through='GenreFilmWork')
     persons = models.ManyToManyField('Person', through='PersonFilmWork')
 
@@ -60,7 +60,7 @@ class GenreFilmWork(models.Model):
 
 class Person(TimeStampedMixin, models.Model):
     id = models.UUIDField(primary_key=True)
-    full_name = models.TextField()
+    full_name = models.CharField(max_length=40)
     birth_date = models.DateField(blank=True, null=True)
 
     class Meta:
