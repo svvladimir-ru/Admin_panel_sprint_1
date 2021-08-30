@@ -1,10 +1,12 @@
 import sqlite3
 
-from schemas import (FilmWorkWithoutField,
-                     GenreWithoutField,
-                     GenreFilmWorkWithoutField,
-                     PersonWithoutField,
-                     PersonFilmWorkWithoutField)
+from schemas import (
+    FilmWorkWithoutField,
+    GenreWithoutField,
+    GenreFilmWorkWithoutField,
+    PersonWithoutField,
+    PersonFilmWorkWithoutField
+)
 
 
 class SQLiteLoader:

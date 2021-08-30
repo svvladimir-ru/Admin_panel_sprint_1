@@ -3,9 +3,12 @@ from django.utils.translation import gettext as _
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
-class TimeStampedMixin:
+class TimeStampedMixin(models.Model):
     created_at = models.DateTimeField(blank=True, null=True, auto_now_add=True)
     updated_at = models.DateTimeField(blank=True, null=True, auto_now=True)
+
+    class Meta:
+        abstract = True
 
 
 class PersonRole(models.TextChoices):
@@ -14,10 +17,12 @@ class PersonRole(models.TextChoices):
     ACTOR = 'actor', _('актер')
 
 
-class FilmWork(TimeStampedMixin, models.Model):
-    """Признаюсь построил через python manage.py inspectdb > models.py
-    Добавил поля в genres, persons для выполнения задачи, вынес created_at и updated_at в TimeStampedMixin
-    """
+class FilmWorkType(models.TextChoices):
+    MOVIE = 'movie', _('фильм')
+    TV_SHOW = 'tv_show', _('шоу')
+
+
+class FilmWork(TimeStampedMixin):
     id = models.UUIDField(primary_key=True)
     title = models.TextField()
     description = models.TextField(blank=True, null=True)
@@ -26,8 +31,9 @@ class FilmWork(TimeStampedMixin, models.Model):
     file_path = models.FileField(upload_to='film_works/', blank=True, null=True)
     rating = models.FloatField(
         validators=[MinValueValidator(0), MaxValueValidator(10)],
-        blank=True, null=True)
-    type = models.CharField(max_length=30, default="movie")  # поменял text, по дефолту movie. Так как других типов нет
+        blank=True, null=True
+    )
+    type = models.CharField(max_length=30, choices=FilmWorkType.choices, default=FilmWorkType.MOVIE)
     genres = models.ManyToManyField('Genre', through='GenreFilmWork')
     persons = models.ManyToManyField('Person', through='PersonFilmWork')
 
@@ -36,7 +42,7 @@ class FilmWork(TimeStampedMixin, models.Model):
         db_table = 'film_work'
 
 
-class Genre(TimeStampedMixin, models.Model):
+class Genre(TimeStampedMixin):
     id = models.UUIDField(primary_key=True)
     name = models.CharField(unique=True, max_length=30)
     description = models.TextField(blank=True, null=True)
@@ -58,7 +64,7 @@ class GenreFilmWork(models.Model):
         unique_together = (('film_work', 'genre'),)
 
 
-class Person(TimeStampedMixin, models.Model):
+class Person(TimeStampedMixin):
     id = models.UUIDField(primary_key=True)
     full_name = models.CharField(max_length=40)
     birth_date = models.DateField(blank=True, null=True)

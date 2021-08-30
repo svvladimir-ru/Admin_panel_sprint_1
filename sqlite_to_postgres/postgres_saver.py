@@ -4,22 +4,25 @@ from psycopg2.extensions import connection as _connection
 class PostgresSaver:
     """Класс для сохранения данных в бд
     Принимает словарь из sqllite_loader.py со значениями из dataclasses
-    проходит циклом, каждые 100 записей добавляет в postgres.
+    проходит циклом, каждые 100 записей добавляет в postgres. Пришлось сделать дублирование кода,
+    что бы добавлять последние записи.
     В postgres добавляются данные из методов, соответствующих названиям таблиц
     """
+
     def __init__(self, pg_conn: _connection):
         self.conn = pg_conn
         self.cursor = self.conn.cursor()
         self.counter = 0
+        self.tables = ''
         self.methods = {
-            'film_work': self.film_work,
-            'genre': self.genre,
-            'genre_film_work': self.genre_film_work,
-            'person': self.person,
-            'person_film_work': self.person_film_work,
+            'film_work': self.mogrify_film_work,
+            'genre': self.mogrify_genre,
+            'genre_film_work': self.mogrify_genre_film_work,
+            'person': self.mogrify_person,
+            'person_film_work': self.mogrify_person_film_work,
         }
 
-    def film_work(self, data) -> list:
+    def mogrify_film_work(self, data) -> list:
         args = ','.join(self.cursor.mogrify(
             "('{}', '{}', {}, {}, {}, '{}', '{}', '{}', {}, '{}')".format(
                 item.title.replace("'", '"'),
@@ -35,7 +38,7 @@ class PostgresSaver:
             )).decode() for item in data)
         return args
 
-    def genre(self, data) -> list:
+    def mogrify_genre(self, data) -> list:
         args = ','.join(self.cursor.mogrify(
             "('{}', {}, '{}', '{}', '{}')".format(
                 item.name,
@@ -46,7 +49,7 @@ class PostgresSaver:
             )).decode() for item in data)
         return args
 
-    def genre_film_work(self, data) -> list:
+    def mogrify_genre_film_work(self, data) -> list:
         args = ','.join(self.cursor.mogrify(
             "('{}', '{}', '{}', '{}')".format(
                 item.film_work_id,
@@ -56,7 +59,7 @@ class PostgresSaver:
             )).decode() for item in data)
         return args
 
-    def person(self, data) -> list:
+    def mogrify_person(self, data) -> list:
         args = ','.join(self.cursor.mogrify(
             "('{}', {}, '{}', '{}', '{}')".format(
                 item.full_name.replace("'", '"'),
@@ -67,7 +70,7 @@ class PostgresSaver:
             )).decode() for item in data)
         return args
 
-    def person_film_work(self, data) -> list:
+    def mogrify_person_film_work(self, data) -> list:
         args = ','.join(self.cursor.mogrify(
             "('{}', '{}', '{}', '{}', '{}')".format(
                 item.film_work_id,
@@ -78,21 +81,17 @@ class PostgresSaver:
             )).decode() for item in data)
         return args
 
-    def save_all_data(self, data: dict) -> bool:
+    def save_all_data(self, data: dict) -> bool:  # убрал try, except, так как rollback срабатывает автоматом.
         for table in data:
-            save_data = []  # оставил для надежности.
-            method = self.methods[f'{table}']  # завел как переменную, что бы ниже не было f'{f'{}'}' и убрал getattr
-            for line in data[table]:
-                save_data.append(line)
-            while len(save_data):  # решил использовать за место batch метода, мне кажется так будет лучше.
-                try:
+            method = self.methods[table]
+            batch = 100
+            for i in range(0, len(data[table]) + batch, batch):
+                data_save = data[table][i: i + batch]
+                if data_save:
                     self.cursor.execute(f"""
                         INSERT INTO content.{table} ({', '.join(i for i in data[table][0].__annotations__)})
-                        VALUES {method(save_data[:100])}
+                        VALUES {method(data_save)}
                         ON CONFLICT (id) DO NOTHING
                         """)
                     self.conn.commit()
-                    del save_data[:100]
-                except Exception:  # для учебный целей не стал подключать логирование, просто сделал выход.
-                    return False
         return True

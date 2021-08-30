@@ -11,7 +11,6 @@ CREATE SCHEMA IF NOT EXISTS content;
 
 -- Добавляем нумерованные типы для ролей
 CREATE TYPE content.film_team_role AS ENUM ('director', 'writer', 'actor');
--- Ок, понял, но пока оставлю что-бы не ломать.
 
 -- Устанавливаем расширение для генерации UUID
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
