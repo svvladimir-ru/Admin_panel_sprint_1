@@ -81,7 +81,7 @@ class PostgresSaver:
             )).decode() for item in data)
         return args
 
-    def save_all_data(self, data: dict) -> bool:  # убрал try, except, так как rollback срабатывает автоматом.
+    def save_all_data(self, data: dict) -> bool:
         for table in data:
             method = self.methods[table]
             batch = 100
